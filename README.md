@@ -3,6 +3,8 @@ Tintbot
 
 Push away the tab bar in Instagram.
 
+![Demo of slick tab bar hiding](https://f.cloud.github.com/assets/951011/2431162/ea5c58a0-ad1e-11e3-9c07-149548ed6d2f.gif)
+
 ---------------------------------------
 [Creative Commons Attribution-NonCommercial 3.0 United States License](http://creativecommons.org/licenses/by-nc/3.0/us/) as of 2014:
 
