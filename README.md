@@ -1,4 +1,4 @@
-Tintbot
+SlickGram
 =======================
 
 Push away the tab bar in Instagram.
