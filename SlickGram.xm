@@ -1,4 +1,7 @@
 #import <UIKit/UIKit.h>
+#define SGNotDefaultTabFrame(fr) (fr.origin.y > (SGKeyWindowRef.frame.size.height - 45.0))
+#define SGKeyWindowRef [UIApplication sharedApplication].keyWindow
+#define SGTabBarRef (((IGRootViewController *)SGKeyWindowRef.rootViewController).visibleViewController.tabBarController.tabBar)
 
 /*********************** Instagram Forward-Declarations ***********************/
 
@@ -9,6 +12,10 @@
 @interface IGTimelineHeaderView : UIView
 @property (nonatomic,retain) UINavigationBar *navbar;
 - (void)updateAppearanceWithParentScrollView:(id)arg1 baseOffset:(float)arg2 andScrollDirectionIsUp:(BOOL)arg3;
+@end
+
+@interface IGMainFeedViewController : UIViewController
+@property (nonatomic,retain) IGTimelineHeaderView* logoHeaderView;
 @end
 
 /*********************** Static Version Checking Functs ***********************/
@@ -31,9 +38,9 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 	}
 }
 
-/*********************** "Shared" Preferences Cell Hook ***********************/
-
 %group Shared
+
+/*********************** "Shared" Preferences Cell Hook ***********************/
 
 %hook IGAccountSettingsViewController
 
@@ -68,6 +75,41 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 
 %end
 
+/*********************** "Shared" Tab Bar Rescue Hooks ***********************/
+
+%hook IGMainFeedViewController
+
+- (void)viewWillAppear:(BOOL)animated {
+	NSLog(@"[SlickGram] Detected timeline view appearance, checking to re-capture...");
+
+	UITabBar *tabBar = SGTabBarRef;
+	UIWindow *keyWindow = SGKeyWindowRef;
+
+	CGRect slicked = tabBar.frame;
+
+	slicked.origin.y = (keyWindow.frame.size.height - slicked.size.height) - (self.logoHeaderView.frame.origin.y - 20.0);
+	[tabBar setFrame:slicked];
+
+	%orig();
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+	NSLog(@"[SlickGram] Detected timeline view disappearing, checking to rescue...");
+	UITabBar *tabBar = SGTabBarRef;
+	UIWindow *keyWindow = SGKeyWindowRef;
+
+	if (SGNotDefaultTabFrame(tabBar.frame)) {
+		CGRect bestFrame = tabBar.frame;
+		bestFrame.size.height = 45.0;
+		bestFrame.origin.y = keyWindow.frame.size.height - bestFrame.size.height;
+		tabBar.frame = bestFrame;
+	}
+
+	%orig();
+}
+
+%end
+
 %end // %group Shared
 
 /**************************** Legacy TabBar Hooks ****************************/
@@ -79,10 +121,10 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 - (void)updateAppearanceWithParentScrollView:(id)arg1 baseOffset:(float)arg2 andScrollDirectionIsUp:(BOOL)arg3 {
 	%orig();
 
-	UIWindow *keyWindow =  [UIApplication sharedApplication].keyWindow;
-	UITabBar *tabBar = ((IGRootViewController *) keyWindow.rootViewController).visibleViewController.tabBarController.tabBar;
+	UITabBar *tabBar = SGTabBarRef;
+	UIWindow *keyWindow = SGKeyWindowRef;
+	// NSLog(@"[SlickGram] Slicking %@ to concord with %@...", tabBar, arg1);
 
-	NSLog(@"[SlickGram] Slicking %@ to concord with %@...", tabBar, arg1);
 	CGRect slicked = tabBar.frame;
 	slicked.size.height -= (20.0 - self.frame.origin.y);
 	slicked.origin.y = keyWindow.frame.size.height - slicked.size.height;
@@ -103,8 +145,9 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 - (void)updateAppearanceWithParentScrollView:(id)arg1 baseOffset:(float)arg2 andScrollDirectionIsUp:(BOOL)arg3 {
 	%orig();
 
-	UIWindow *keyWindow =  [UIApplication sharedApplication].keyWindow;
-	UITabBar *tabBar = ((IGRootViewController *) keyWindow.rootViewController).visibleViewController.tabBarController.tabBar;
+	UITabBar *tabBar = SGTabBarRef;
+	UIWindow *keyWindow = SGKeyWindowRef;
+	// NSLog(@"[SlickGram] Slicking %@ to concord with %@...", tabBar, arg1);
 
 	CGRect slicked = tabBar.frame;
 	slicked.origin.y = (keyWindow.frame.size.height - slicked.size.height) - (self.frame.origin.y - 20.0);
