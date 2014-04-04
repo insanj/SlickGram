@@ -18,7 +18,7 @@
 @property (nonatomic,retain) IGTimelineHeaderView* logoHeaderView;
 @end
 
-/*********************** Static Version Checking Functs ***********************/
+/***************** Static setFrame and Version-Check Functs *******************/
 
 // Returns 1 if legacy supported, 2 if current supported, 0 if unsupported.
 static NSUInteger sg_isSupportedVersionString(NSString *v) {
@@ -38,9 +38,15 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 	}
 }
 
-%group Shared
+static void sg_slickTabBarForHeaderInWindow(UITabBar *bar, UIView *header, UIWindow *window) {
+	CGRect slicked = bar.frame;
+	slicked.origin.y = (window.frame.size.height - slicked.size.height) - (header.frame.origin.y - 20.0);
+	[bar setFrame:slicked];
+}
 
-/*********************** "Shared" Preferences Cell Hook ***********************/
+%group Preferences
+
+/************************ Shared Preferences Cell Hook ************************/
 
 %hook IGAccountSettingsViewController
 
@@ -75,20 +81,17 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 
 %end
 
-/*********************** "Shared" Tab Bar Rescue Hooks ***********************/
+%end // %group Preferences
+
+/************************ Shared Tab Bar Rescue Hooks ************************/
+
+%group Rescue
 
 %hook IGMainFeedViewController
 
 - (void)viewWillAppear:(BOOL)animated {
 	NSLog(@"[SlickGram] Detected timeline view appearance, checking to re-capture...");
-
-	UITabBar *tabBar = SGTabBarRef;
-	UIWindow *keyWindow = SGKeyWindowRef;
-
-	CGRect slicked = tabBar.frame;
-
-	slicked.origin.y = (keyWindow.frame.size.height - slicked.size.height) - (self.logoHeaderView.frame.origin.y - 20.0);
-	[tabBar setFrame:slicked];
+	sg_slickTabBarForHeaderInWindow(SGTabBarRef, self.logoHeaderView, SGKeyWindowRef);
 
 	%orig();
 }
@@ -110,11 +113,11 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 
 %end
 
-%end // %group Shared
+%end // %group Rescue
 
 /**************************** Legacy TabBar Hooks ****************************/
 
-%group Version506
+%group Legacy // 5.0.6
 
 %hook IGTimelineHeaderView
 
@@ -123,8 +126,10 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 
 	UITabBar *tabBar = SGTabBarRef;
 	UIWindow *keyWindow = SGKeyWindowRef;
-	// NSLog(@"[SlickGram] Slicking %@ to concord with %@...", tabBar, arg1);
 
+	// Uh so I didn't really care how weird this frame math was when I made it,
+	// and I'm now afraid to optimize it like I did the other stuff because I
+	// can't test it. Just stay away. Far away.
 	CGRect slicked = tabBar.frame;
 	slicked.size.height -= (20.0 - self.frame.origin.y);
 	slicked.origin.y = keyWindow.frame.size.height - slicked.size.height;
@@ -134,7 +139,7 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 
 %end
 
-%end // %group Version506
+%end // %group Legacy
 
 /**************************** Current TabBar Hooks ****************************/
 
@@ -144,14 +149,7 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 
 - (void)updateAppearanceWithParentScrollView:(id)arg1 baseOffset:(float)arg2 andScrollDirectionIsUp:(BOOL)arg3 {
 	%orig();
-
-	UITabBar *tabBar = SGTabBarRef;
-	UIWindow *keyWindow = SGKeyWindowRef;
-	// NSLog(@"[SlickGram] Slicking %@ to concord with %@...", tabBar, arg1);
-
-	CGRect slicked = tabBar.frame;
-	slicked.origin.y = (keyWindow.frame.size.height - slicked.size.height) - (self.frame.origin.y - 20.0);
-	[tabBar setFrame:slicked];
+	sg_slickTabBarForHeaderInWindow(SGTabBarRef, self, SGKeyWindowRef);
 }
 
 %end
@@ -161,7 +159,6 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 /***************************** Logos Constructor *****************************/
 
 %ctor {
-	%init(Shared);
 	NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
 	NSUInteger supported = sg_isSupportedVersionString(version);
 	BOOL userEnabled = [[NSUserDefaults standardUserDefaults] boolForKey:@"SGEnabled"];
@@ -171,14 +168,17 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 	[[NSUserDefaults standardUserDefaults] setBool:shouldEnable forKey:@"SGEnabled"];
 	[[NSUserDefaults standardUserDefaults] setObject:version forKey:@"SGLastRanVersion"];
 
-	// Legacy
-	if (shouldEnable && supported == 1) {
-		%init(Version506);
-	}
+	%init(Preferences);
+	if (shouldEnable) {
+		%init(Rescue);
 
-	// Legacy
-	else if (shouldEnable) {
-		%init(Current);
+		if (supported == 1) {	 // Legacy
+			%init(Legacy);
+		}
+
+		else {					// Current Versions (5.0.7-5.0.8)
+			%init(Current);
+		}
 	}
 
 	// Unsupported
