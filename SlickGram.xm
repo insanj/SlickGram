@@ -14,7 +14,7 @@
 /*********************** Static Version Checking Functs ***********************/
 
 // Returns 1 if legacy supported, 2 if current supported, 0 if unsupported.
-BOOL sg_isSupportedVersionString(NSString *v) {
+static NSUInteger sg_isSupportedVersionString(NSString *v) {
 	if ([v isEqualToString:@"5.0.6"]) {
 		NSLog(@"[SlickGram] Detected Instagram running on supported old version %@.", v);
 		return 1;
@@ -33,7 +33,7 @@ BOOL sg_isSupportedVersionString(NSString *v) {
 
 /*********************** "Shared" Preferences Cell Hook ***********************/
 
-%group Shared // Preferences
+%group Shared
 
 %hook IGAccountSettingsViewController
 
