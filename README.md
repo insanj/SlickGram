@@ -1,7 +1,7 @@
 SlickGram
 =======================
 
-Push away the tab bar in Instagram. **Currently supports Instagram versions 5.0.6 - 5.0.8**.
+Push away the tab bar in Instagram. **Currently supports Instagram versions 5.0.6 - 5.0.9**.
 
 ![Demo of slick tab bar hiding](https://f.cloud.github.com/assets/951011/2431168/72daf1f0-ad1f-11e3-845c-b46e4646a421.gif)
 

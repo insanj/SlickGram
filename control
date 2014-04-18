@@ -2,7 +2,7 @@ Package: com.insanj.slickgram
 Name: SlickGram
 Pre-Depends: firmware (>= 7.0)
 Depends: mobilesubstrate
-Version: 1.1.1
+Version: 1.1.2
 Architecture: iphoneos-arm
 Description: Push away the tab bar in Instagram.
 Maintainer: Julian Weiss <insanjmail@insanj.com>

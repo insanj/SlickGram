@@ -27,7 +27,7 @@ static NSUInteger sg_isSupportedVersionString(NSString *v) {
 		return 1;
 	}
 
-	else if ([v isEqualToString:@"5.0.7"] || [v isEqualToString:@"5.0.8"]) {
+	else if ([@[@"5.0.7", @"5.0.8", @"5.0.9"] containsObject:v]) {
 		NSLog(@"[SlickGram] Detected Instagram running on supported current version %@.", v);
 		return 2;
 	}
@@ -143,7 +143,7 @@ static void sg_slickTabBarForHeaderInWindow(UITabBar *bar, UIView *header, UIWin
 
 /**************************** Current TabBar Hooks ****************************/
 
-%group Current // 5.0.7, 5.0.8
+%group Current // 5.0.7, 5.0.8, 5.0.9
 
 %hook IGTimelineHeaderView
 
@@ -176,7 +176,7 @@ static void sg_slickTabBarForHeaderInWindow(UITabBar *bar, UIView *header, UIWin
 			%init(Legacy);
 		}
 
-		else {					// Current Versions (5.0.7-5.0.8)
+		else {					// Current Versions (5.0.7-5.0.9)
 			%init(Current);
 		}
 	}
