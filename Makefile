@@ -6,9 +6,11 @@ include theos/makefiles/common.mk
 
 TWEAK_NAME = SlickGram
 SlickGram_FILES = SlickGram.xm
-SlickGram_FRAMEWORKS = UIKit
+SlickGram_FRAMEWORKS = Foundation UIKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
+before-stage::
+	find . -name ".DS_Store" -delete
 internal-after-install::
-	install.exec "killall -9 backboardd"
+	install.exec "killall -9 Instagram"
